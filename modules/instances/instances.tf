@@ -8,7 +8,7 @@ resource "aws_spot_instance_request" "public" {
   instance_type = var.instance_type
   key_name      = var.ssh_key_pair_name
 
-  security_groups = [
+  vpc_security_group_ids = [
     aws_default_security_group.default.id,
     aws_security_group.ingress_from_home_ip.id
   ]
@@ -27,7 +27,7 @@ resource "aws_instance" "public" {
   instance_type = var.instance_type
   key_name      = var.ssh_key_pair_name
 
-  security_groups = [
+  vpc_security_group_ids = [
     aws_default_security_group.default.id,
     aws_security_group.ingress_from_home_ip.id
   ]

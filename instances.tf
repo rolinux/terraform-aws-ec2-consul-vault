@@ -14,6 +14,8 @@ module "eu-west-1" {
   providers = {
     aws = aws
   }
+
+  depends_on = [module.my_ip.my_ip]
 }
 
 module "eu-west-2" {
@@ -31,4 +33,6 @@ module "eu-west-2" {
   providers = {
     aws = aws.eu-west-2
   }
+
+  depends_on = [module.my_ip.my_ip]
 }
