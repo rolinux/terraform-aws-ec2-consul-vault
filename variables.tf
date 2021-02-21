@@ -29,3 +29,11 @@ variable "ssh_key_pair_name" {
   type    = string
   default = "deployer-key"
 }
+
+variable "ansible_inventory_vars" {
+  type = map(any)
+  default = {
+    "ansible_user" : "ec2-user",
+    "become" : "yes"
+  }
+}
