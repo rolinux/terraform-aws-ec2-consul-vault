@@ -1,12 +1,14 @@
 /* Module variables */
 variable "instance_type" {
-  type    = string
-  default = "t3.micro"
+  description = "AWS Instance Type to use"
+  type        = string
+  default     = "t3.micro"
 }
 
 variable "instance_count" {
-  type    = number
-  default = 3
+  description = "Number of instances to start - minumum 3 are recommended"
+  type        = number
+  default     = 3
 }
 
 variable "my_ip" {
@@ -15,7 +17,9 @@ variable "my_ip" {
 }
 
 variable "spot_price" {
-  type = string
+  description = "If Spot Instances are used then update to map to a real value"
+  type        = string
+  default     = "0.003"
 }
 
 variable "use_spot_instead_of_on_demand" {
@@ -25,11 +29,13 @@ variable "use_spot_instead_of_on_demand" {
 }
 
 variable "public_key_path" {
-  type    = string
-  default = "~/.ssh/id_rsa.pub"
+  description = "Path to Public RSA key to load into AWS"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
 }
 
 variable "ssh_key_pair_name" {
-  type    = string
-  default = "deployer-key"
+  description = "Name of Public Key inside AWS"
+  type        = string
+  default     = "deployer-key"
 }

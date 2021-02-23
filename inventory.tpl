@@ -1,3 +1,4 @@
+# the template allows for multiple regions
 [targets:children]
 ew1
 
@@ -7,6 +8,8 @@ ${var_key}=${var_value}
 %{ endfor ~}
 consul_cluster_key = "${consul_cluster_key}"
 ew1_private_ips = ${jsonencode(ew1_private_ips)}
+consul_download_url = "${consul_download_url}"
+vault_download_url = "${vault_download_url}"
 
 [ew1]
 %{ for name, ip in ew1_hostname_map ~}

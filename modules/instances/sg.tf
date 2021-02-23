@@ -1,4 +1,6 @@
 /* Security Group resources */
+
+# reference the default security group and add few Tags
 resource "aws_default_security_group" "default" {
   vpc_id = data.aws_vpc.default.id
 
@@ -22,6 +24,7 @@ resource "aws_default_security_group" "default" {
   }
 }
 
+# create new SG allowing all traffic from Home IP
 resource "aws_security_group" "ingress_from_home_ip" {
   name        = "ingress_from_home_ip"
   description = "Allow all ingress traffic into my_ip"

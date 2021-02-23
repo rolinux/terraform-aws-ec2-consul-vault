@@ -1,4 +1,6 @@
 /* call to instances module */
+
+# create the instances in "eu-west-1" with the right options
 module "eu-west-1" {
   source = "./modules/instances"
   # instance_type = var.instance_type

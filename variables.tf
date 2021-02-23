@@ -1,39 +1,63 @@
 /* Module variables */
 variable "instance_type" {
-  type    = string
-  default = "t3.micro"
+  description = "AWS Instance Type to use"
+  type        = string
+  default     = "t3.micro"
 }
 
 variable "instance_count" {
-  type    = number
-  default = 3
+  description = "Number of instances to start - minumum 3 are recommended"
+  type        = number
+  default     = 3
 }
 
 variable "spot_price" {
-  type    = string
-  default = "0.003"
+  description = "If Spot Instances are used then update to map to a real value"
+  type        = string
+  default     = "0.003"
 }
 
 variable "use_spot_instead_of_on_demand" {
-  description = "Use a spot instance instead of on demand"
+  description = "Use a spot instance instead of on-demand"
   type        = bool
   default     = true
 }
 
 variable "public_key_path" {
-  type    = string
-  default = "~/.ssh/id_rsa.pub"
+  description = "Path to Public RSA key to load into AWS"
+  type        = string
+  default     = "~/.ssh/id_rsa.pub"
 }
 
 variable "ssh_key_pair_name" {
-  type    = string
-  default = "deployer-key"
+  description = "Name of Public Key inside AWS"
+  type        = string
+  default     = "deployer-key"
 }
 
 variable "ansible_inventory_vars" {
-  type = map(any)
+  description = "Map/dictionary of variables to add in Ansible Inventory file"
+  type        = map(any)
   default = {
     "ansible_user" : "ec2-user",
     "become" : "yes"
   }
+}
+
+variable "consul_version" {
+  description = "Version of Consul to download and install"
+  type        = string
+  default     = "1.9.3"
+}
+
+variable "vault_version" {
+  description = "Version of Vault to download and install"
+  type        = string
+  default     = "1.6.2"
+}
+
+variable "hashicorp_releases_url" {
+  description = "HashiCorp releases url"
+  type        = string
+  default     = "https://releases.hashicorp.com/"
 }

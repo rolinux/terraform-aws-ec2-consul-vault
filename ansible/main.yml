@@ -3,3 +3,4 @@
 
   roles:
     - set_hostname
+    - download_binaries
