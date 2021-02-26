@@ -20,8 +20,14 @@ locals {
   # consul download url
   consul_download_url = "${var.hashicorp_releases_url}consul/${var.consul_version}/consul_${var.consul_version}_linux_${local.hashi_architecture}.zip"
 
+  # consul download filename
+  consul_download_filename = "consul_${var.consul_version}_linux_${local.hashi_architecture}.zip"
+
   # vault download url
   vault_download_url = "${var.hashicorp_releases_url}vault/${var.vault_version}/vault_${var.vault_version}_linux_${local.hashi_architecture}.zip"
+
+  # vault download filename
+  vault_download_filename = "vault_${var.vault_version}_linux_${local.hashi_architecture}.zip"
 
   depends_on = [module.eu-west-1]
 }
@@ -36,12 +42,14 @@ resource "local_file" "inventory_file" {
   content = templatefile(
     "${path.module}/inventory.tpl",
     {
-      ew1_hostname_map    = local.ew1_hostname_map,
-      ew1_private_ips     = local.ew1_private_ips,
-      vars                = var.ansible_inventory_vars,
-      consul_cluster_key  = random_id.consul_keygen.b64_std,
-      consul_download_url = local.consul_download_url,
-      vault_download_url  = local.vault_download_url,
+      ew1_hostname_map         = local.ew1_hostname_map,
+      ew1_private_ips          = local.ew1_private_ips,
+      vars                     = var.ansible_inventory_vars,
+      consul_cluster_key       = random_id.consul_keygen.b64_std,
+      consul_download_url      = local.consul_download_url,
+      consul_download_filename = local.consul_download_filename,
+      vault_download_url       = local.vault_download_url,
+      vault_download_filename  = local.vault_download_filename,
     }
   )
   filename        = "${path.module}/ansible/inventory"

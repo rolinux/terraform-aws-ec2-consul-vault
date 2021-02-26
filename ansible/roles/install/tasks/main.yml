@@ -1,0 +1,91 @@
+- name: Download the files
+  ansible.builtin.get_url:
+    url: "{{ item }}"
+    dest: /tmp
+    mode: '0440'
+  with_items:
+    - "{{ consul_download_url }}"
+    - "{{ consul_download_url | regex_replace('_linux_.*.zip', '_SHA256SUMS') }}"
+    - "{{ consul_download_url | regex_replace('_linux_.*.zip', '_SHA256SUMS.sig') }}"
+    - "{{ vault_download_url }}"
+    - "{{ vault_download_url | regex_replace('_linux_.*.zip', '_SHA256SUMS') }}"
+    - "{{ vault_download_url | regex_replace('_linux_.*.zip', '_SHA256SUMS.sig') }}"
+
+- name: copy hashicorp.asc to /tmp
+  ansible.builtin.copy:
+    src: hashicorp.asc
+    dest: /tmp/hashicorp.asc
+    mode: '0440'
+
+- name: import HashiCorp GPG key
+  command: gpg --import /tmp/hashicorp.asc
+
+- name: verify the signature file is untampered.
+  command: gpg --verify "{{ item | regex_replace('_linux_.*.zip', '_SHA256SUMS.sig') }}" "{{ item | regex_replace('_linux_.*.zip', '_SHA256SUMS') }}"
+  args:
+    chdir: /tmp/
+  with_items:
+    - "{{ consul_download_filename }}"
+    - "{{ vault_download_filename }}"
+  
+# SHA256SUMS file includes all zip files for the release and the sha256sum will fail with only 1 file present
+# to avoid that we keep only the line for the file
+- name: create one line ...SHA256SUMS.targeted file
+  shell: grep "{{ item }}" "{{ item | regex_replace('_linux_.*.zip', '_SHA256SUMS') }}" > "{{ item | regex_replace('_linux_.*.zip', '_SHA256SUMS') }}.targeted"
+  args:
+    chdir: /tmp/
+  with_items:
+    - "{{ consul_download_filename }}"
+    - "{{ vault_download_filename }}"
+
+- name: check the zip file against ...SHA256SUMS.targeted file
+  command: sha256sum -c "{{ item | regex_replace('_linux_.*.zip', '_SHA256SUMS') }}.targeted"
+  args:
+    chdir: /tmp/
+  with_items:
+    - "{{ consul_download_filename }}"
+    - "{{ vault_download_filename }}"
+
+# unzip the binaries with unarchive
+- name: Unarchive the Consul and Vault binaries
+  ansible.builtin.unarchive:
+    src: "/tmp/{{ item }}"
+    dest: /usr/bin
+    remote_src: yes
+  with_items:
+    - "{{ consul_download_filename }}"
+    - "{{ vault_download_filename }}"
+
+- name: create users for consul and vault
+  ansible.builtin.user:
+    name: "{{ item.key }}"
+    home: "{{ item.value }}"
+    shell: /bin/false
+  with_dict: "{{ new_users }}"
+
+# create the required folders
+- name: create the required folders
+  ansible.builtin.file:
+    path: "{{ item.key }}"
+    owner: "{{ item.value }}"
+    group: "{{ item.value }}"
+    state: directory
+    recurse: yes
+  with_dict: "{{ install_folders }}"
+
+# copy config and service files
+- name: copy config and service files
+  ansible.builtin.copy:
+    src: "{{ item.key }}"
+    dest: "{{ item.value }}"
+  with_dict: "{{ install_files_and_folders }}"
+
+# rerun against required folders to change permission
+- name: recursive permission in the required folders
+  ansible.builtin.file:
+    path: "{{ item.key }}"
+    owner: "{{ item.value }}"
+    group: "{{ item.value }}"
+    state: directory
+    recurse: yes
+  with_dict: "{{ install_folders }}"
