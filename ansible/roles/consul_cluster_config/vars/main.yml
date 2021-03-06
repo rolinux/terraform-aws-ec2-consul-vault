@@ -1,6 +1,3 @@
-new_users:
-  "consul": "/etc/consul.d/"
-  "vault": "/etc/vault.d/"
 install_folders:
   "/etc/consul.d/": "consul"
   "/opt/consul/": "consul"

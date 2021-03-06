@@ -1,0 +1,26 @@
+# create the required folders
+- name: create the required folders
+  ansible.builtin.file:
+    path: "{{ item.key }}"
+    owner: "{{ item.value }}"
+    group: "{{ item.value }}"
+    state: directory
+    recurse: yes
+  with_dict: "{{ install_folders }}"
+
+# copy config and service files
+- name: copy config and service files
+  ansible.builtin.copy:
+    src: "{{ item.key }}"
+    dest: "{{ item.value }}"
+  with_dict: "{{ install_files_and_folders }}"
+
+# rerun against required folders to change permission
+- name: recursive permission in the required folders
+  ansible.builtin.file:
+    path: "{{ item.key }}"
+    owner: "{{ item.value }}"
+    group: "{{ item.value }}"
+    state: directory
+    recurse: yes
+  with_dict: "{{ install_folders }}"

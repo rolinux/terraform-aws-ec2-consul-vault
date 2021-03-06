@@ -9,7 +9,10 @@ ${var_key}=${var_value}
 consul_cluster_key = "${consul_cluster_key}"
 ew1_private_ips = ${jsonencode(ew1_private_ips)}
 consul_download_url = "${consul_download_url}"
+consul_download_filename = "${consul_download_filename}"
 vault_download_url = "${vault_download_url}"
+vault_download_filename = "${vault_download_filename}"
+dc_name = "${dc_name}"
 
 [ew1]
 %{ for name, ip in ew1_hostname_map ~}

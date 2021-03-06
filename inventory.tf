@@ -50,6 +50,7 @@ resource "local_file" "inventory_file" {
       consul_download_filename = local.consul_download_filename,
       vault_download_url       = local.vault_download_url,
       vault_download_filename  = local.vault_download_filename,
+      dc_name                  = "eu-west-1",
     }
   )
   filename        = "${path.module}/ansible/inventory"

@@ -1,6 +1,14 @@
+# set_hostname and download consul and vault binaries
 - hosts: targets
   become: yes
 
   roles:
     - set_hostname
-    - install
+    - download_consul_vault
+
+# create consul TLS CA and certs for cluster
+- hosts: targets[0]
+  become: yes
+
+  roles:
+    - create_consul_tls

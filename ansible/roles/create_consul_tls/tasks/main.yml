@@ -1,0 +1,21 @@
+# create Consul TLS CA
+- name: create Consul TLS CA
+  command: consul tls ca create
+  args:
+    chdir: "{{ consul_config_folder }}"
+    creates: "consul-agent-ca.pem"
+
+# create multiple Consul server cert
+- name: create multiple Consul server cert
+  command: consul tls cert create -server -dc "{{ dc_name }}"
+  args:
+    chdir: "{{ consul_config_folder }}"
+    creates: "{{ dc_name }}-server-consul-{{ groups['targets'] | length - 1 }}.pem"
+  with_items: "{{ groups['targets'] }}"
+
+# download/synchronize new TLS files
+- name: synchronize new TLS files
+  ansible.builtin.synchronize:
+    src: "{{ consul_config_folder }}"
+    dest: consul_tls_files/
+    mode: pull
