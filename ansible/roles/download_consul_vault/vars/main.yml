@@ -4,4 +4,5 @@ new_users:
 install_folders:
   "/etc/consul.d/": "consul"
   "/opt/consul/": "consul"
+  "/var/log/consul/": "consul"
   "/etc/vault.d/": "vault"

@@ -1,9 +1,11 @@
 install_folders:
   "/etc/consul.d/": "consul"
   "/opt/consul/": "consul"
+  "/var/log/consul/": "consul"
   "/etc/vault.d/": "vault"
 install_files_and_folders:
   "consul.hcl": "/etc/consul.d/"
   "consul.service": "/etc/systemd/system/"
   "vault.hcl": "/etc/vault.d/"
   "vault.service": "/etc/systemd/system/"
+consul_config_folder: "/etc/consul.d/"

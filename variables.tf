@@ -53,7 +53,7 @@ variable "consul_version" {
 variable "vault_version" {
   description = "Version of Vault to download and install"
   type        = string
-  default     = "1.6.2"
+  default     = "1.6.3"
 }
 
 variable "hashicorp_releases_url" {

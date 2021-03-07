@@ -12,3 +12,10 @@
 
   roles:
     - create_consul_tls
+
+# consul cluster config
+- hosts: targets
+  become: yes
+
+  roles:
+    - consul_cluster_config

@@ -9,7 +9,7 @@ locals {
     5 = "f"
   }
   # generate a map of hostnames and their IPs
-  ew1_hostname_map = { for k, value in sort(module.eu-west-1.public_instance_public_ips) : "hashi${k + 1}-ew1${local.count_to_az[k]}" => value }
+  ew1_hostname_map = { for k, value in sort(module.eu-west-1.public_instance_public_ips) : "hashi${k}-ew1${local.count_to_az[k]}" => value }
 
   # sorted list of private IPs as returned by the module
   ew1_private_ips = [for ip in sort(module.eu-west-1.public_instance_private_ips) : ip]

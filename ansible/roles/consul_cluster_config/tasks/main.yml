@@ -1,5 +1,14 @@
-# create the required folders
-- name: create the required folders
+# set fact for host count in cluster
+- name: set fact for host count in cluster
+  ansible.builtin.set_fact:
+    cluster_index: "{{ inventory_hostname | regex_replace('hashi', '') | regex_replace('-ew1.', '') | int }}"
+
+- name: set fact for retry join ips
+  ansible.builtin.set_fact:
+    retry_join_ips: "{{ ew1_private_ips | difference([hostvars[inventory_hostname]['ansible_default_ipv4']['address']]) }}"
+
+# check the required folders are present
+- name: check the required folders are present
   ansible.builtin.file:
     path: "{{ item.key }}"
     owner: "{{ item.value }}"
@@ -8,12 +17,24 @@
     recurse: yes
   with_dict: "{{ install_folders }}"
 
-# copy config and service files
-- name: copy config and service files
+# copy the right TLS files to the right host
+- name: copy the right TLS files
   ansible.builtin.copy:
-    src: "{{ item.key }}"
-    dest: "{{ item.value }}"
-  with_dict: "{{ install_files_and_folders }}"
+    src: "consul_tls_files/{{ item }}"
+    dest: "{{ consul_config_folder }}"
+  with_items:
+    - "consul-agent-ca.pem"
+    - "{{ dc_name }}-server-consul-{{ cluster_index }}.pem"
+    - "{{ dc_name }}-server-consul-{{ cluster_index }}-key.pem"
+
+# template the consul.hcl config file
+- name: template the consul.hcl
+  ansible.builtin.template:
+    src: "consul.hcl.j2"
+    dest: "/etc/consul.d/consul.hcl"
+    owner: consul
+    group: consul
+    mode: '0644'
 
 # rerun against required folders to change permission
 - name: recursive permission in the required folders
@@ -24,3 +45,16 @@
     state: directory
     recurse: yes
   with_dict: "{{ install_folders }}"
+
+# copy systemd service file
+- name: copy consul.service file
+  ansible.builtin.copy:
+    src: "consul.service"
+    dest: "/etc/systemd/system/"
+
+# enable and start consul service
+- name: enable and start consul service
+  ansible.builtin.service:
+    name: consul
+    state: started
+    enabled: yes
