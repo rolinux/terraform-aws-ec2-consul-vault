@@ -4,18 +4,32 @@
 
   roles:
     - set_hostname
-    - download_consul_vault
+    - downloads
 
-# create consul TLS CA and certs for cluster
+# consul create TLS CA and certs for cluster
 - hosts: targets[0]
   become: yes
 
   roles:
-    - create_consul_tls
+    - consul_create_tls
 
-# consul cluster config
+# consul cluster config with default acl
 - hosts: targets
   become: yes
 
   roles:
     - consul_cluster_config
+
+# consul bootstrap ACL for cluster
+- hosts: targets[0]
+  become: yes
+
+  roles:
+    - consul_bootstrap_acl
+
+# consul register services
+- hosts: targets
+  become: yes
+
+  roles:
+    - consul_register_services

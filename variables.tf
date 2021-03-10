@@ -47,7 +47,7 @@ variable "ansible_inventory_vars" {
 variable "consul_version" {
   description = "Version of Consul to download and install"
   type        = string
-  default     = "1.9.3"
+  default     = "1.9.4"
 }
 
 variable "vault_version" {
