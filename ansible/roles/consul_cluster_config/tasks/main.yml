@@ -1,3 +1,29 @@
+# block to create the consul TLS
+- name: block to create the consul TLS
+  block:
+    # create Consul TLS CA
+    - name: create Consul TLS CA
+      command: consul tls ca create
+      args:
+        chdir: "{{ consul_config_folder }}"
+        creates: "consul-agent-ca.pem"
+
+    # create multiple Consul server cert
+    - name: create multiple Consul server cert
+      command: consul tls cert create -server -dc "{{ dc_name }}"
+      args:
+        chdir: "{{ consul_config_folder }}"
+        creates: "{{ dc_name }}-server-consul-{{ groups['targets'] | length - 1 }}.pem"
+      with_items: "{{ groups['targets'] }}"
+
+    # download/synchronize new TLS files
+    - name: synchronize new TLS files
+      ansible.builtin.synchronize:
+        src: "{{ consul_config_folder }}"
+        dest: consul_tls_files/
+        mode: pull
+  run_once: True
+
 # set fact for host count in cluster
 - name: set fact for host count in cluster
   ansible.builtin.set_fact:
@@ -31,10 +57,10 @@
 - name: template the consul.hcl
   ansible.builtin.template:
     src: "consul.hcl.j2"
-    dest: "/etc/consul.d/consul.hcl"
+    dest: "{{ consul_config_folder }}/consul.hcl"
     owner: consul
     group: consul
-    mode: '0644'
+    mode: '0640'
 
 # rerun against required folders to change permission
 - name: recursive permission in the required folders
@@ -58,3 +84,77 @@
     name: consul
     state: started
     enabled: yes
+
+# add wait to tasks to allow cluster to come up
+- name: wait to cluster to come up before bootstrap
+  ansible.builtin.pause:
+    seconds: 30
+
+- name: bootstrap idempotency
+  block:
+    # generate the bootstrap token
+    - name: acl bootstrap
+      command: consul acl bootstrap
+      register: acl_bootstrap
+
+    # to extract bootstrap token we need second line of the output
+    # then split by spaces and token is in second part
+    - name: extract bootstrap token
+      ansible.builtin.set_fact:
+        bootstrap_token: "{{ acl_bootstrap.stdout_lines[1].split()[1] }}"
+
+    # copy node-policy.hcl to /tmp
+    - name: copy node-policy.hcl to /tmp
+      ansible.builtin.copy:
+        src: "node-policy.hcl"
+        dest: "/tmp/"
+        mode: "0600"
+
+    # create acl node-policy
+    - name: create acl node-policy
+      shell: consul acl policy create -token="{{ bootstrap_token }}" -name node-policy -rules @node-policy.hcl
+      args:
+        chdir: "/tmp/"
+      environment:
+        CONSUL_HTTP_TOKEN: "{{ bootstrap_token }}"
+        CONSUL_MGMT_TOKEN: "{{ bootstrap_token }}"
+
+    # create node token
+    - name: acl node token
+      shell: consul acl token create -token="{{ bootstrap_token }}" -description "node token" -policy-name node-policy
+      register: acl_node
+      environment:
+        CONSUL_HTTP_TOKEN: "{{ bootstrap_token }}"
+        CONSUL_MGMT_TOKEN: "{{ bootstrap_token }}"
+
+    # to extract agent token we need second line of the output
+    # then split by spaces and token is in second part
+    - name: extract agent token
+      ansible.builtin.set_fact:
+        agent_token: "{{ acl_node.stdout_lines[1].split()[1] }}"
+
+    # output the primary host IP and the agent_token and bootstrap_token
+
+    - debug: msg="Connect to http://{{ ansible_host }}:8500 and use the {{ agent_token }} agent token ( {{ bootstrap_token }} bootstrap token)"
+
+  rescue:
+    - debug:
+        msg: "Cluster already ACL bootstrapped"
+  run_once: True
+
+# on each node add the node token
+- name: set node token
+  shell: consul acl set-agent-token -token="{{ bootstrap_token }}" agent "{{ agent_token }}"
+  register: acl_bootstrap
+  environment:
+    CONSUL_HTTP_TOKEN: "{{ bootstrap_token }}"
+    CONSUL_MGMT_TOKEN: "{{ bootstrap_token }}"
+  when: bootstrap_token is defined
+
+# register services to consul - this is idempotent
+- name: register services to consul
+  shell: consul services register -name ssh -port 22
+  environment:
+    CONSUL_HTTP_TOKEN: "{{ bootstrap_token }}"
+    CONSUL_MGMT_TOKEN: "{{ bootstrap_token }}"
+  when: bootstrap_token is defined

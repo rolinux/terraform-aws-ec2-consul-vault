@@ -1,3 +1,0 @@
-# register services to consul - this is idempotent
-- name: register services to consul
-  command: consul services register -name ssh -port 22
